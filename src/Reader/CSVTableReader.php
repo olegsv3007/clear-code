@@ -4,38 +4,29 @@ namespace OlegSv\TableReader\Reader;
 
 use OlegSv\TableReader\Contract\TableReader;
 use OlegSv\TableReader\DataStructure\TableRow;
-use OlegSv\TableReader\Exception\FileNotFoundException;
 use OlegSv\TableReader\Exception\WrongCsvFormatException;
+use OlegSv\TableReader\Service\FileStreamService;
 
 class CSVTableReader implements TableReader
 {
-    /** @var resource|false */
-    private $fileHandler;
+    private FileStreamService $fileStreamService;
     private array $titles;
 
-    public function __construct(string $fileSrc)
+    public function __construct(FileStreamService $fileStreamService)
     {
-        $this->openStream($fileSrc);
+        $this->fileStreamService = $fileStreamService;
+        $this->fileStreamService->openStream();
         $this->readTitles();
-    }
-
-    private function openStream(string $fileSrc): void
-    {
-        if (file_exists($fileSrc)) {
-            $this->fileHandler = fopen($fileSrc, 'r');
-        } else {
-            throw new FileNotFoundException($fileSrc);
-        }
     }
 
     private function readTitles(): void
     {
-        $this->titles = fgetcsv($this->fileHandler);
+        $this->titles = fgetcsv($this->fileStreamService->getStream());
     }
 
     public function readNextRow(): TableRow|false
     {
-        $rowData = fgetcsv($this->fileHandler);
+        $rowData = fgetcsv($this->fileStreamService->getStream());
 
         if ($rowData) {
             if ($this->isRowDataCountMathTitlesCount($rowData)) {
@@ -46,7 +37,7 @@ class CSVTableReader implements TableReader
             throw new WrongCsvFormatException($rowData);
         }
 
-        fclose($this->fileHandler);
+        $this->fileStreamService->closeStream();
         return false;
     }
 
@@ -61,6 +52,7 @@ class CSVTableReader implements TableReader
 
         while (
             count($chunkRows) < $size
+            && is_resource($this->fileStreamService->getStream())
             && ($row = $this->readNextRow())
         ) {
             $chunkRows[] = $row;
