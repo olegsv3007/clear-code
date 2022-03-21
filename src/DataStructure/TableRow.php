@@ -4,16 +4,16 @@ namespace OlegSv\TableReader\DataStructure;
 
 class TableRow
 {
-    private array $fields = [];
+    private array $cells = [];
 
-    public function addField(TableCell $cell): void
+    public function addCell(TableCell $cell): void
     {
-        $this->fields[] = $cell;
+        $this->cells[] = $cell;
     }
 
-    public function getFields(): array
+    public function getCells(): array
     {
-        return $this->fields;
+        return $this->cells;
     }
 
     public static function createFromArray(array $rowArray): self
@@ -21,7 +21,7 @@ class TableRow
         $row = new self();
         foreach ($rowArray as $key => $value) {
             $cell = new TableCell($key, $value);
-            $row->addField($cell);
+            $row->addCell($cell);
         }
 
         return $row;
