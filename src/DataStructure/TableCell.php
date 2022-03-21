@@ -1,6 +1,6 @@
 <?php
 
-namespace OlegSv\TableReader\DataStructures;
+namespace OlegSv\TableReader\DataStructure;
 
 class TableCell
 {
