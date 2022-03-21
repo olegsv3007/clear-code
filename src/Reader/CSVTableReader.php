@@ -19,7 +19,7 @@ class CSVTableReader implements TableReader
         $this->readTitles();
     }
 
-    private function openStream(string $fileSrc)
+    private function openStream(string $fileSrc): void
     {
         if (file_exists($fileSrc)) {
             $this->fileHandler = fopen($fileSrc, 'r');
