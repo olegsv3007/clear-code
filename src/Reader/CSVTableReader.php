@@ -26,17 +26,19 @@ class CSVTableReader implements TableReader
     {
         $rowData = fgetcsv($this->stream->get());
 
-        if ($rowData) {
-            if ($this->isRowDataCountMathTitlesCount($rowData)) {
-                $rowDataWithTitles = array_combine($this->titles, $rowData);
+        if (empty($rowData)) {
+            $this->stream->close();
 
-                return TableRow::createFromArray($rowDataWithTitles);
-            }
-            throw new WrongCsvFormatException($rowData);
+            return false;
         }
 
-        $this->stream->close();
-        return false;
+        if ($this->isRowDataCountMathTitlesCount($rowData)) {
+            $rowDataWithTitles = array_combine($this->titles, $rowData);
+
+            return TableRow::createFromArray($rowDataWithTitles);
+        }
+
+        throw new WrongCsvFormatException($rowData);
     }
 
     private function isRowDataCountMathTitlesCount(array $rowData): bool
