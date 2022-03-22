@@ -19,6 +19,7 @@ class TableRow
     public static function createFromArray(array $rowArray): self
     {
         $row = new self();
+
         foreach ($rowArray as $key => $value) {
             $cell = new TableCell($key, $value);
             $row->addCell($cell);
