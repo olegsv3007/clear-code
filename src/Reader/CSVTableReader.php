@@ -2,48 +2,24 @@
 
 namespace OlegSv\TableReader\Reader;
 
-use OlegSv\TableReader\Contract\TableReader;
 use OlegSv\TableReader\DataStructure\TableRow;
 use OlegSv\TableReader\Exception\WrongCsvFormatException;
-use OlegSv\TableReader\Service\FileStreamService;
+use OlegSv\TableReader\Service\Stream;
 
 class CSVTableReader implements TableReader
 {
-    private FileStreamService $fileStreamService;
+    private Stream $stream;
     private array $titles;
 
-    public function __construct(FileStreamService $fileStreamService)
+    public function __construct(Stream $stream)
     {
-        $this->fileStreamService = $fileStreamService;
-        $this->fileStreamService->openStream();
+        $this->stream = $stream;
         $this->readTitles();
     }
 
     private function readTitles(): void
     {
-        $this->titles = fgetcsv($this->fileStreamService->getStream());
-    }
-
-    public function readNextRow(): TableRow|false
-    {
-        $rowData = fgetcsv($this->fileStreamService->getStream());
-
-        if ($rowData) {
-            if ($this->isRowDataCountMathTitlesCount($rowData)) {
-                $rowDataWithTitles = array_combine($this->titles, $rowData);
-
-                return TableRow::createFromArray($rowDataWithTitles);
-            }
-            throw new WrongCsvFormatException($rowData);
-        }
-
-        $this->fileStreamService->closeStream();
-        return false;
-    }
-
-    private function isRowDataCountMathTitlesCount(array $rowData): bool
-    {
-        return count($this->titles) === count($rowData);
+        $this->titles = fgetcsv($this->stream->get());
     }
 
     public function readChunk(int $size = self::DEFAULT_CHUNK_SIZE): array
@@ -52,12 +28,40 @@ class CSVTableReader implements TableReader
 
         while (
             count($chunkRows) < $size
-            && is_resource($this->fileStreamService->getStream())
             && ($row = $this->readNextRow())
         ) {
             $chunkRows[] = $row;
         }
 
         return $chunkRows;
+    }
+
+    public function readNextRow(): TableRow|false
+    {
+        if (!is_resource($this->stream->get())) {
+
+            return false;
+        }
+
+        $rowData = fgetcsv($this->stream->get());
+
+        if (empty($rowData)) {
+            $this->stream->close();
+
+            return false;
+        }
+
+        if ($this->isRowDataCountMathTitlesCount($rowData)) {
+            $rowDataWithTitles = array_combine($this->titles, $rowData);
+
+            return TableRow::createFromArray($rowDataWithTitles);
+        }
+
+        throw new WrongCsvFormatException($rowData);
+    }
+
+    private function isRowDataCountMathTitlesCount(array $rowData): bool
+    {
+        return count($this->titles) === count($rowData);
     }
 }
