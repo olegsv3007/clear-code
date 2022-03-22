@@ -4,28 +4,27 @@ namespace OlegSv\TableReader\Reader;
 
 use OlegSv\TableReader\DataStructure\TableRow;
 use OlegSv\TableReader\Exception\WrongCsvFormatException;
-use OlegSv\TableReader\Service\FileStreamService;
+use OlegSv\TableReader\Service\Stream;
 
 class CSVTableReader implements TableReader
 {
-    private FileStreamService $fileStreamService;
+    private Stream $stream;
     private array $titles;
 
-    public function __construct(FileStreamService $fileStreamService)
+    public function __construct(Stream $stream)
     {
-        $this->fileStreamService = $fileStreamService;
-        $this->fileStreamService->openStream();
+        $this->stream = $stream;
         $this->readTitles();
     }
 
     private function readTitles(): void
     {
-        $this->titles = fgetcsv($this->fileStreamService->getStream());
+        $this->titles = fgetcsv($this->stream->get());
     }
 
     public function readNextRow(): TableRow|false
     {
-        $rowData = fgetcsv($this->fileStreamService->getStream());
+        $rowData = fgetcsv($this->stream->get());
 
         if ($rowData) {
             if ($this->isRowDataCountMathTitlesCount($rowData)) {
@@ -36,7 +35,7 @@ class CSVTableReader implements TableReader
             throw new WrongCsvFormatException($rowData);
         }
 
-        $this->fileStreamService->closeStream();
+        $this->stream->close();
         return false;
     }
 
@@ -51,7 +50,7 @@ class CSVTableReader implements TableReader
 
         while (
             count($chunkRows) < $size
-            && is_resource($this->fileStreamService->getStream())
+            && is_resource($this->stream->get())
             && ($row = $this->readNextRow())
         ) {
             $chunkRows[] = $row;

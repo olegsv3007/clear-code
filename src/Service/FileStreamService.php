@@ -6,34 +6,14 @@ use OlegSv\TableReader\Exception\FileNotFoundException;
 
 class FileStreamService
 {
-    /** @var resource|false */
-    private $stream = false;
-    private string $fileSrc;
-
-    public function __construct(string $fileSrc)
+    public function openStream(string $fileSrc): Stream
     {
-        $this->fileSrc = $fileSrc;
-    }
-
-    public function openStream(): void
-    {
-        if (file_exists($this->fileSrc)) {
-            $this->stream = fopen($this->fileSrc, 'r');
-        } else {
-            throw new FileNotFoundException($this->fileSrc);
+        if (!file_exists($fileSrc)) {
+            throw new FileNotFoundException($fileSrc);
         }
-    }
 
-    /**
-     * @return false|resource
-     */
-    public function getStream()
-    {
-        return is_resource($this->stream) ? $this->stream : false;
-    }
+        $resource = fopen($fileSrc, 'r');
 
-    public function closeStream(): void
-    {
-        fclose($this->stream);
+        return Stream::create($resource);
     }
 }
