@@ -1,6 +1,6 @@
 <?php
 
-namespace OlegSv\TableReader\Contract;
+namespace OlegSv\TableReader\Reader;
 
 use OlegSv\TableReader\DataStructure\TableRow;
 

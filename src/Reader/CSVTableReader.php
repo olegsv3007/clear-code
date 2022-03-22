@@ -2,7 +2,6 @@
 
 namespace OlegSv\TableReader\Reader;
 
-use OlegSv\TableReader\Contract\TableReader;
 use OlegSv\TableReader\DataStructure\TableRow;
 use OlegSv\TableReader\Exception\WrongCsvFormatException;
 use OlegSv\TableReader\Service\FileStreamService;
