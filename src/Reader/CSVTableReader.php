@@ -22,8 +22,27 @@ class CSVTableReader implements TableReader
         $this->titles = fgetcsv($this->stream->get());
     }
 
+    public function readChunk(int $size = self::DEFAULT_CHUNK_SIZE): array
+    {
+        $chunkRows = [];
+
+        while (
+            count($chunkRows) < $size
+            && ($row = $this->readNextRow())
+        ) {
+            $chunkRows[] = $row;
+        }
+
+        return $chunkRows;
+    }
+
     public function readNextRow(): TableRow|false
     {
+        if (!is_resource($this->stream->get())) {
+
+            return false;
+        }
+
         $rowData = fgetcsv($this->stream->get());
 
         if (empty($rowData)) {
@@ -44,20 +63,5 @@ class CSVTableReader implements TableReader
     private function isRowDataCountMathTitlesCount(array $rowData): bool
     {
         return count($this->titles) === count($rowData);
-    }
-
-    public function readChunk(int $size = self::DEFAULT_CHUNK_SIZE): array
-    {
-        $chunkRows = [];
-
-        while (
-            count($chunkRows) < $size
-            && is_resource($this->stream->get())
-            && ($row = $this->readNextRow())
-        ) {
-            $chunkRows[] = $row;
-        }
-
-        return $chunkRows;
     }
 }
